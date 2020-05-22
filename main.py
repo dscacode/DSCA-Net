@@ -81,7 +81,6 @@ def my_test(y_true, y_pred):
     # print(y_true_after.shape, y_pred_after.shape)
 
     my_label_ranking_average_precision_score = label_ranking_average_precision_score(y_true=y_true_after, y_score=y_pred_after)
-    my_micro_auc = roc_auc_score(y_true_after, y_pred_after, average='micro')
 
     y_pred_after[y_pred_after >= 0.5] = 1
     y_pred_after[y_pred_after < 0.5] = 0
@@ -89,16 +88,13 @@ def my_test(y_true, y_pred):
     y_true_after = np.array(y_true_after, dtype=int)
 
     my_jaccard_score = jaccard_score(y_true=y_true_after, y_pred=y_pred_after, average='samples')
-    my_hamming_loss = hamming_loss(y_true=y_true_after, y_pred=y_pred_after)
     my_micro_f1 = f1_score(y_true_after, y_pred_after, average='micro')
 
 
     return \
-        my_jaccard_score, \
-        my_hamming_loss, \
+        my_jaccard_score,
         my_label_ranking_average_precision_score, \
-        my_micro_f1, \
-        my_micro_auc
+        my_micro_f1
 
 
 # Dsca
@@ -111,13 +107,11 @@ def get_dscagru(seqlen_, max_features_, seqx1_dim, seqx2_dim, seqx1_emb_dim, seq
                    tau=tau_,
                    )(inputs)
     hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
+    hout = Dropout(rate=0.3)(hout)
+
     hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
-    hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
-    hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
+    hout = Dropout(rate=0.3)(hout)
+    
     hout_final = Dense(400, activation=keras.activations.sigmoid)(hout)
     model = Model(inputs=inputs, outputs=hout_final, name='DSCA-GRU')
     return model
@@ -132,13 +126,11 @@ def get_dscalstm(seqlen_, max_features_, seqx1_dim, seqx2_dim, seqx1_emb_dim, se
                     tau=tau_,
                     )(inputs)
     hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
+    hout = Dropout(rate=0.3)(hout)
+
     hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
-    hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
-    hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
+    hout = Dropout(rate=0.3)(hout)
+
     hout_final = Dense(400, activation=keras.activations.sigmoid)(hout)
     model = Model(inputs=inputs, outputs=hout_final, name='DSCA-LSTM')
     return model
@@ -152,14 +144,13 @@ def get_dscarnn(seqlen_, max_features_, seqx1_dim, seqx2_dim, seqx1_emb_dim, seq
                    seqx2_emb_dim=seqx2_emb_dim,
                    tau=tau_,
                    )(inputs)
+    
     hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
+    hout = Dropout(rate=0.3)(hout)
+
     hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
-    hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
-    hout = Dense(dlay_units_, activation=keras.activations.relu)(hout)
-    hout = Dropout(0.3)(hout)
+    hout = Dropout(rate=0.3)(hout)
+    
     hout_final = Dense(400, activation=keras.activations.sigmoid)(hout)
     model = Model(inputs=inputs, outputs=hout_final, name='DSCA-RNN')
     return model
@@ -185,14 +176,11 @@ def train_model(model_, x_train_, y_train_, x_test_, y_test_, batch_size_, epoch
     my_micro_f1, my_micro_auc = my_test(y_true=y_test_, y_pred=y_pred_)
     print(model_.name, time, [
         round(my_jaccard_score, 8),
-        round(my_hamming_loss, 8),
         round(my_label_ranking_average_precision_score, 8),
-        round(my_micro_f1, 8),
-        round(my_micro_auc, 8)])
+        round(my_micro_f1, 8)])
     print('JACCARD_SCORE:', my_jaccard_score)
     print('LABEL_RANKING_AVERAGE_PRECISION_SCORE:', my_label_ranking_average_precision_score)
     print('MICRO_F1:', my_micro_f1)
-    print('MICRO_AUC:', my_micro_auc)
 
 
 if __name__ == '__main__':
@@ -237,11 +225,11 @@ if __name__ == '__main__':
     print('x_test shape:', x_test.shape)
     print('y_train shape:', y_train.shape)
     print('y_test shape:', y_test.shape)
-    train_model(get_dscarnn(seqlen, max_features, 400, max_features - 400, 64, 64, tau, rnnlay_units, dlay_units),
+    train_model(get_dscarnn(seqlen, max_features, 400, max_features - 400, 128, 128, tau, rnnlay_units, dlay_units),
                 x_train, y_train, x_test, y_test, batch_size, epochs, patience, verbose)
-    train_model(get_dscalstm(seqlen, max_features, 400, max_features - 400, 64, 64, tau, rnnlay_units, dlay_units),
+    train_model(get_dscalstm(seqlen, max_features, 400, max_features - 400, 128, 128, tau, rnnlay_units, dlay_units),
                 x_train, y_train, x_test, y_test, batch_size, epochs, patience, verbose)
-    train_model(get_dscagru(seqlen, max_features, 400, max_features - 400, 64, 64, tau, rnnlay_units, dlay_units),
+    train_model(get_dscagru(seqlen, max_features, 400, max_features - 400, 128, 128, tau, rnnlay_units, dlay_units),
                 x_train, y_train, x_test, y_test, batch_size, epochs, patience, verbose)
 
 
