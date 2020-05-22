@@ -180,18 +180,6 @@ class DscaRNNCell(Layer):
         embseqx1 = K.dot(seqx1, self.embed_weight_1)
         embseqx2 = K.dot(seqx2, self.embed_weight_2)
 
-        # cross_att_1to2 = K.softmax(K.tanh(
-        #     K.dot(embseqx1, self.cross_attention_weight_1to2_w) +
-        #     K.dot(embseqx2, self.cross_attention_weight_1to2_u)) *
-        #                            K.dot(embseqx2, self.cross_attention_weight_1to2_v))
-        #
-        # #print('cross_att_1to2:', cross_att_1to2)
-        # cross_att_2to1 = K.softmax(K.tanh(
-        #     K.dot(embseqx2, self.cross_attention_weight_2to1_w) +
-        #     K.dot(embseqx1, self.cross_attention_weight_2to1_u)) *
-        #                            K.dot(embseqx1, self.cross_attention_weight_2to1_v))
-        # #print('cross_att_2to1:', cross_att_2to1)
-
         cross_att_1to2 = K.softmax(K.tanh(
             K.dot(embseqx1, self.cross_attention_weight_1to2_w) +
             K.dot(embseqx2, self.cross_attention_weight_1to2_u)) *
@@ -202,15 +190,10 @@ class DscaRNNCell(Layer):
             K.dot(embseqx2, self.cross_attention_weight_2to1_w) +
             K.dot(embseqx1, self.cross_attention_weight_2to1_u)) *
                                    K.dot(embseqx1, self.cross_attention_weight_2to1_v))
-        # print('cross_att_2to1:', cross_att_2to1)
 
         cross_att = K.concatenate([cross_att_1to2, cross_att_2to1])
 
-        # print('cross_att:', cross_att)
-
         inputs = K.concatenate([embseqx1 * cross_att_1to2, embseqx2 * cross_att_2to1])
-
-        # print('inputs:', inputs)
 
         if 0 < self.dropout < 1 and self._dropout_mask is None:
             self._dropout_mask = _generate_dropout_mask(
@@ -249,12 +232,7 @@ class DscaRNNCell(Layer):
         # print('crohis:', crohis)
         output = (1 - self.tau) * output + self.tau * (K.tanh(K.bias_add(K.dot(crohis, self.crohis_weight_w),
                                                                          self.crohis_bias)))
-        # h = (1 - self.tau) * h + self.tau * \
-        #     (K.tanh(K.bias_add(
-        #         (K.dot(crohis, self.crohis_weight_w)),
-        #         self.crohis_bias)))
-        #
-        # print('h:', h)
+
         return output, [output, crohis]
 
 
